@@ -28,9 +28,8 @@ static const char *colors[][3]      = {
 
 /* autostart */
 static const char *const autostart[] = {
-        "pkill", "--signal", "40", "tikiblocks", NULL,
-        "alacritty", NULL,
-        NULL /* terminate */
+    "dunst", NULL,
+    NULL /* terminate */
 };
 
 /* tagging */

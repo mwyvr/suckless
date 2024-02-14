@@ -516,6 +516,13 @@ cleanup(void)
 	Monitor *m;
 	size_t i;
 
+    /* kill child processes */
+    for (i = 0; i < autostart_len; i++) {
+        if (0 < autostart_pids[i]) {
+            kill(autostart_pids[i], SIGTERM);
+            waitpid(autostart_pids[i], NULL, 0);
+        }
+    }
 	view(&a);
 	selmon->lt[selmon->sellt] = &foo;
 	for (m = mons; m; m = m->next)
@@ -529,13 +536,6 @@ cleanup(void)
 	for (i = 0; i < LENGTH(colors); i++)
 		free(scheme[i]);
 	free(scheme);
-    /* kill child processes */
-    for (i = 0; i < autostart_len; i++) {
-        if (0 < autostart_pids[i]) {
-            kill(autostart_pids[i], SIGTERM);
-            waitpid(autostart_pids[i], NULL, 0);
-        }
-    }
 
 	XDestroyWindow(dpy, wmcheckwin);
 	drw_free(drw);
