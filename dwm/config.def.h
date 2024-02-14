@@ -7,8 +7,8 @@ static const int rmaster            = 1;        /* 1 means master-area is initia
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const int barpad             = 6;        /* pixels of padding above and below */
-static const char *fonts[]          = { "monospace:size=11" };
-static const char dmenufont[]       = "monospace:size=11";
+static const char *fonts[]          = { "sans:size=12" };
+static const char dmenufont[]       = "sans:size=12";
 static const char col_gray0[]       = "#1f232c";
 static const char col_gray1[]       = "#3b4252";
 static const char col_gray2[]       = "#465780";
@@ -24,6 +24,13 @@ static const char *colors[][3]      = {
 	[SchemeTagsNorm]  = { col_gray3, col_gray0,  "#000000"  }, // Tagbar left unselected {text,background,not used but cannot be empty}
 	[SchemeInfoSel]  = { col_gray4, col_gray0,  "#000000"  }, // infobar middle  selected {text,background,not used but cannot be empty}
 	[SchemeInfoNorm]  = { col_gray3, col_gray0,  "#000000"  }, // infobar middle  unselected {text,background,not used but cannot be empty}
+};
+
+/* autostart */
+static const char *const autostart[] = {
+        "pkill", "--signal", "40", "tikiblocks", NULL,
+        "alacritty", NULL,
+        NULL /* terminate */
 };
 
 /* tagging */
@@ -71,7 +78,6 @@ static const char *roficmd[]  = { "rofi", "-show", "drun", NULL };
 static const char *termcmd[]  = { "alacritty", NULL };
 static const char *volup[] = { "/usr/bin/wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%+", "-l", "1.0", NULL }; /* -l 1.0 limits volume to 100% */
 static const char *voldown[] = { "/usr/bin/wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-", NULL };
-static const char *voltoggle[] = { "/usr/bin/wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle", NULL };
 static const char *brightup[] = { "/usr/bin/brillo", "-A", "5", NULL};
 static const char *brightdown[] = { "/usr/bin/brillo", "-U", "5", NULL};
 static const char *lockcmd[] = { "slock", NULL };
@@ -113,12 +119,12 @@ static const Key keys[] = {
 	TAGKEYS(                        XK_7,                      6)
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
-	/* modifier                     key         function        argument */
 	{ MODKEY|ShiftMask,             XK_q,       quit,           {0} },
+	/* modifier                     key         function        argument */
     { SUPERKEY|ShiftMask,           XK_l,       spawn,          {.v = lockcmd }},
     { SUPERKEY|ShiftMask,           XK_h,       spawn,          {.v = hibernatecmd }},
     { SUPERKEY|ShiftMask,           XK_s,       spawn,          {.v = sleepcmd }},
-    { 0,                            XF86XK_AudioMute, spawn,    {.v = voltoggle }},
+    { 0,                            XF86XK_AudioMute, spawn,    SHCMD("/usr/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && kill -40 $(pidof tikiblocks)")},
     { 0,                            XF86XK_AudioLowerVolume, spawn, {.v = voldown }},
     { 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = volup }},
     { 0,                            XF86XK_MonBrightnessDown, spawn, {.v = brightdown }},

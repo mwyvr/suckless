@@ -153,6 +153,7 @@ static void arrange(Monitor *m);
 static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachstack(Client *c);
+static void autostartexec(void);
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -273,6 +274,9 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
+
+static pid_t *autostart_pids;
+static size_t autostart_len;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -431,6 +435,27 @@ attachstack(Client *c)
 }
 
 void
+autostartexec(void) {
+        const char *const *p;
+        size_t i = 0;
+
+        /* count entries */
+        for (p = autostart; *p; autostart_len++, p++)
+                while (*++p);
+
+        autostart_pids = calloc(autostart_len, sizeof(pid_t));
+        for (p = autostart; *p; i++, p++) {
+                if ((autostart_pids[i] = fork()) == 0) {
+                        setsid();
+                        execvp(*p, (char *const *)p);
+                        die("dwl: execvp %s:", *p);
+                }
+                /* skip arguments */
+                while (*++p);
+        }
+}
+
+void
 buttonpress(XEvent *e)
 {
 	unsigned int i, x, click;
@@ -504,6 +529,14 @@ cleanup(void)
 	for (i = 0; i < LENGTH(colors); i++)
 		free(scheme[i]);
 	free(scheme);
+    /* kill child processes */
+    for (i = 0; i < autostart_len; i++) {
+        if (0 < autostart_pids[i]) {
+            kill(autostart_pids[i], SIGTERM);
+            waitpid(autostart_pids[i], NULL, 0);
+        }
+    }
+
 	XDestroyWindow(dpy, wmcheckwin);
 	drw_free(drw);
 	XSync(dpy, False);
@@ -1414,6 +1447,7 @@ void
 run(void)
 {
 	XEvent ev;
+    autostartexec();
 	/* main event loop */
 	XSync(dpy, False);
 	while (running && !XNextEvent(dpy, &ev))
